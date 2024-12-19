@@ -1,1 +1,13 @@
+//Print Your whole bio data including name,uid,section,Area_of_interest,Hometown,dob,age,cgpa.
 
+#include <iostream>
+using namespace std;
+int main() {
+    // Write C++ code here
+    string name="Akash",uid="22BCS17064",section="22BCS_IOT-630/A",Area_of_interest="Machine Learning",Hometown="Gohana",dob="30/09/2003",aim="To be a good software engineer";
+    int age=21;
+    float cgpa=7.39;
+    cout<<"Name: "<<name<<"\nUID: "<<uid<<"\nSection: "<<section<<"\nArea of interest: "<<Area_of_interest<<"\nAge:"<<age<<"\nLast year CGPA: "<<cgpa<<"\nDOB: "<<dob<<"\nHometown :"<<Hometown<<"\nAim in Life: "<<aim;
+
+    return 0;
+}
