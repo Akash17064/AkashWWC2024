@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdlib>
+
+using namespace std;
+
+// Define a struct to represent a task
+struct Task {
+    int taskId;
+    int priority;
+    int executionTime;
+    Task* nextTask;
+};
+
+// Define a class to manage the task scheduler
+class TaskScheduler {
+private:
+    Task* head;
+
+public:
+    TaskScheduler() {
+        head = nullptr;
+    }
+
+    // Function to insert a new task into the scheduler
+    void insertTask(int taskId, int priority, int executionTime) {
+        Task* newTask = new Task();
+        newTask->taskId = taskId;
+        newTask->priority = priority;
+        newTask->executionTime = executionTime;
+        newTask->nextTask = nullptr;
+
+        if (head == nullptr || priority > head->priority) {
+            newTask->nextTask = head;
+            head = newTask;
+        } else {
+            Task* currentTask = head;
+            while (currentTask->nextTask != nullptr && currentTask->nextTask->priority >= priority) {
+                currentTask = currentTask->nextTask;
+            }
+            newTask->nextTask = currentTask->nextTask;
+            currentTask->nextTask = newTask;
+        }
+    }
+
+    // Function to remove a task from the scheduler
+    void removeTask(int taskId) {
+        if (head == nullptr) {
+            cout << "Task not found." << endl;
+            return;
+        }
+
+        if (head->taskId == taskId) {
+            Task* tempTask = head;
+            head = head->nextTask;
+            delete tempTask;
+            return;
+        }
+
+        Task* currentTask = head;
+        while (currentTask->nextTask != nullptr) {
+            if (currentTask->nextTask->taskId == taskId) {
+                Task* tempTask = currentTask->nextTask;
+                currentTask->nextTask = currentTask->nextTask->nextTask;
+                delete tempTask;
+                return;
+            }
+            currentTask = currentTask->nextTask;
+        }
+
+        cout << "Task not found." << endl;
+    }
+
+    // Function to display the current state of the task scheduler
+    void displayTasks() {
+        Task* currentTask = head;
+        while (currentTask != nullptr) {
+            cout << "Task ID: " << currentTask->taskId << endl;
+            cout << "Priority: " << currentTask->priority << endl;
+            cout << "Execution Time: " << currentTask->executionTime << endl;
+            cout << endl;
+            currentTask = currentTask->nextTask;
+        }
+    }
+};
+
+int main() {
+    TaskScheduler scheduler;
+
+    scheduler.insertTask(1, 3, 10);
+    scheduler.insertTask(2, 2, 5);
+    scheduler.insertTask(3, 1, 15);
+
+    scheduler.displayTasks();
+
+    scheduler.removeTask(2);
+
+    scheduler.displayTasks();
+
+    return 0;
+}
