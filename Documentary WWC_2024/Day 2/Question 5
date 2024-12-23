@@ -1,0 +1,150 @@
+#include <iostream>
+#include <string>
+
+struct Booking {
+    int seatNumber;
+    std::string passengerName;
+    Booking* next;
+
+    Booking(int seat, const std::string& name) : seatNumber(seat), passengerName(name), next(nullptr) {}
+};
+
+struct Compartment {
+    int compartmentID;
+    int totalSeats;
+    Booking* bookings;
+
+    Compartment(int id, int seats) : compartmentID(id), totalSeats(seats), bookings(nullptr) {}
+
+    void bookSeat(const std::string& passengerName) {
+        int seatNumber = 1;
+        Booking* current = bookings;
+        while (current && seatNumber == current->seatNumber) {
+            seatNumber++;
+            current = current->next;
+        }
+
+        if (seatNumber > totalSeats) {
+            std::cout << "No available seats in Compartment " << compartmentID << "!" << std::endl;
+            return;
+        }
+
+        Booking* newBooking = new Booking(seatNumber, passengerName);
+        newBooking->next = bookings;
+        bookings = newBooking;
+
+        std::cout << "Seat " << seatNumber << " booked for " << passengerName << " in Compartment " << compartmentID << "!" << std::endl;
+    }
+
+    void cancelBooking(int seatNumber) {
+        if (!bookings) {
+            std::cout << "No bookings found in Compartment " << compartmentID << "!" << std::endl;
+            return;
+        }
+
+        if (bookings->seatNumber == seatNumber) {
+            Booking* toDelete = bookings;
+            bookings = bookings->next;
+            delete toDelete;
+            std::cout << "Booking for seat " << seatNumber << " canceled in Compartment " << compartmentID << "!" << std::endl;
+            return;
+        }
+
+        Booking* current = bookings;
+        while (current->next && current->next->seatNumber != seatNumber) {
+            current = current->next;
+        }
+
+        if (current->next) {
+            Booking* toDelete = current->next;
+            current->next = current->next->next;
+            delete toDelete;
+            std::cout << "Booking for seat " << seatNumber << " canceled in Compartment " << compartmentID << "!" << std::endl;
+        } else {
+            std::cout << "Seat " << seatNumber << " not found in Compartment " << compartmentID << "!" << std::endl;
+        }
+    }
+
+    void checkAvailability() {
+        int bookedSeats = 0;
+        Booking* current = bookings;
+        while (current) {
+            bookedSeats++;
+            current = current->next;
+        }
+
+        std::cout << "Compartment " << compartmentID << " has " << (totalSeats - bookedSeats)
+                  << " available seats out of " << totalSeats << "." << std::endl;
+    }
+
+    ~Compartment() {
+        while (bookings) {
+            Booking* toDelete = bookings;
+            bookings = bookings->next;
+            delete toDelete;
+        }
+    }
+};
+
+struct Train {
+    int trainID;
+    Compartment** compartments;
+    int compartmentCount;
+
+    Train(int id, int numberOfCompartments, int seatsPerCompartment) : trainID(id), compartmentCount(numberOfCompartments) {
+        compartments = new Compartment*[numberOfCompartments];
+        for (int i = 0; i < numberOfCompartments; ++i) {
+            compartments[i] = new Compartment(i + 1, seatsPerCompartment);
+        }
+    }
+
+    void bookSeat(int compartmentID, const std::string& passengerName) {
+        if (compartmentID <= 0 || compartmentID > compartmentCount) {
+            std::cout << "Invalid Compartment ID!" << std::endl;
+            return;
+        }
+        compartments[compartmentID - 1]->bookSeat(passengerName);
+    }
+
+    void cancelBooking(int compartmentID, int seatNumber) {
+        if (compartmentID <= 0 || compartmentID > compartmentCount) {
+            std::cout << "Invalid Compartment ID!" << std::endl;
+            return;
+        }
+        compartments[compartmentID - 1]->cancelBooking(seatNumber);
+    }
+
+    void checkAvailability(int compartmentID) {
+        if (compartmentID <= 0 || compartmentID > compartmentCount) {
+            std::cout << "Invalid Compartment ID!" << std::endl;
+            return;
+        }
+        compartments[compartmentID - 1]->checkAvailability();
+    }
+
+    ~Train() {
+        for (int i = 0; i < compartmentCount; ++i) {
+            delete compartments[i];
+        }
+        delete[] compartments;
+    }
+};
+
+int main() {
+    Train train(1, 3, 5);
+
+    train.bookSeat(1, "Alice");
+    train.bookSeat(1, "Bob");
+    train.bookSeat(2, "Charlie");
+
+    train.checkAvailability(1);
+    train.checkAvailability(2);
+
+    train.cancelBooking(1, 1);
+    train.checkAvailability(1);
+
+    train.bookSeat(1, "Diana");
+    train.checkAvailability(1);
+
+    return 0;
+}
