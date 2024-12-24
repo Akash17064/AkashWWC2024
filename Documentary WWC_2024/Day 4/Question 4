@@ -1,0 +1,104 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+// Enum for Triage Priority (Critical > High > Medium > Low)
+enum TriagePriority {
+    CRITICAL = 4,
+    HIGH = 3,
+    MEDIUM = 2,
+    LOW = 1
+};
+
+// Structure to store Patient information
+struct Patient {
+    string name;              // Patient's name
+    TriagePriority triage;    // Triage priority level
+    string severity;          // Severity of condition (e.g., heart attack, stroke, etc.)
+    long long arrivalTime;    // Arrival time (in milliseconds or any unique value)
+    
+    // Constructor
+    Patient(string name, TriagePriority triage, string severity, long long arrivalTime)
+        : name(name), triage(triage), severity(severity), arrivalTime(arrivalTime) {}
+
+    // Print patient details
+    void print() const {
+        cout << "Name: " << name 
+             << ", Severity: " << severity
+             << ", Triage Priority: " << triage
+             << ", Arrival Time: " << arrivalTime << endl;
+    }
+};
+
+// Comparator for sorting patients based on triage priority, severity, and arrival time
+bool comparePatients(const Patient& a, const Patient& b) {
+    // First, prioritize by triage (Critical > High > Medium > Low)
+    if (a.triage != b.triage) {
+        return a.triage > b.triage;  // Higher triage priority is better
+    }
+    
+    // If triage is the same, prioritize by severity (Custom ranking could be added for severity)
+    if (a.severity != b.severity) {
+        // You can assign severity a priority, for now we'll assume heart attack > stroke > others
+        vector<string> severityRanking = {"heart attack", "stroke", "other"};
+        auto posA = find(severityRanking.begin(), severityRanking.end(), a.severity);
+        auto posB = find(severityRanking.begin(), severityRanking.end(), b.severity);
+        
+        return posA < posB;  // Lower index means higher priority
+    }
+    
+    // If both triage and severity are the same, prioritize by arrival time (earlier is better)
+    return a.arrivalTime < b.arrivalTime;  // Lower arrival time means higher priority
+}
+
+// QuickSort function for sorting patients
+template <typename T>
+void quickSort(vector<T> &patients, int low, int high, bool (*compare)(const T&, const T&)) {
+    if (low < high) {
+        int pi = partition(patients, low, high, compare);
+        quickSort(patients, low, pi - 1, compare);
+        quickSort(patients, pi + 1, high, compare);
+    }
+}
+
+template <typename T>
+int partition(vector<T> &patients, int low, int high, bool (*compare)(const T&, const T&)) {
+    T pivot = patients[high];
+    int i = (low - 1);
+
+    for (int j = low; j < high; j++) {
+        if (compare(patients[j], pivot)) {
+            i++;
+            swap(patients[i], patients[j]);
+        }
+    }
+
+    swap(patients[i + 1], patients[high]);
+    return (i + 1);
+}
+
+int main() {
+    // Sample patient data
+    vector<Patient> patients = {
+        Patient("John Doe", CRITICAL, "heart attack", 1638403200000),
+        Patient("Jane Smith", HIGH, "stroke", 1638403220000),
+        Patient("Emily Johnson", MEDIUM, "fever", 1638403230000),
+        Patient("Michael Brown", LOW, "headache", 1638403240000),
+        Patient("Sarah Davis", HIGH, "stroke", 1638403250000),
+        Patient("David Wilson", CRITICAL, "heart attack", 1638403210000)
+    };
+
+    // Sort patients by triage priority, severity, and arrival time
+    quickSort(patients, 0, patients.size() - 1, comparePatients);
+
+    // Print sorted list of patients
+    cout << "Sorted patients based on triage priority, severity, and arrival time:\n";
+    for (const auto& patient : patients) {
+        patient.print();
+    }
+
+    return 0;
+}
