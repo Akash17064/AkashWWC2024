@@ -1,0 +1,95 @@
+#include <iostream>
+#include <vector>
+#include <cmath> // For calculating geographical distance (optional)
+
+using namespace std;
+
+// Define a structure to store transaction information
+struct Transaction {
+    int id;                 // Unique transaction ID
+    double amount;          // Transaction amount
+    int frequency;          // Frequency of transactions (e.g., within an hour)
+    double latitude;        // Latitude of the transaction location
+    double longitude;       // Longitude of the transaction location
+    double suspiciousness;  // Suspiciousness score based on factors
+
+    // Constructor to initialize transaction data
+    Transaction(int id, double amount, int frequency, double latitude, double longitude)
+        : id(id), amount(amount), frequency(frequency), latitude(latitude), longitude(longitude), suspiciousness(0) {}
+    
+    // Method to compute suspiciousness score
+    void computeSuspiciousness(double weight_amount, double weight_frequency, double weight_location) {
+        suspiciousness = weight_amount * amount + weight_frequency * frequency + weight_location * (fabs(latitude) + fabs(longitude)); // Simple geographical calculation
+    }
+};
+
+// Partition function for QuickSort
+int partition(vector<Transaction>& transactions, int low, int high) {
+    double pivot = transactions[high].suspiciousness; // Choose the pivot as the last element
+    int i = low - 1; // Index of smaller element
+
+    for (int j = low; j < high; j++) {
+        // If current element's suspiciousness is greater than the pivot, swap
+        if (transactions[j].suspiciousness > pivot) {
+            i++;
+            swap(transactions[i], transactions[j]);
+        }
+    }
+    // Place the pivot element at the correct position
+    swap(transactions[i + 1], transactions[high]);
+    return i + 1;
+}
+
+// QuickSort algorithm
+void quickSort(vector<Transaction>& transactions, int low, int high) {
+    if (low < high) {
+        // Partitioning index
+        int pi = partition(transactions, low, high);
+
+        // Recursively sort the two halves
+        quickSort(transactions, low, pi - 1);
+        quickSort(transactions, pi + 1, high);
+    }
+}
+
+int main() {
+    // Sample transactions (id, amount, frequency, latitude, longitude)
+    vector<Transaction> transactions = {
+        Transaction(1, 1000.0, 5, 34.0522, -118.2437),
+        Transaction(2, 500.0, 2, 40.7128, -74.0060),
+        Transaction(3, 2000.0, 10, 51.5074, -0.1278),
+        Transaction(4, 300.0, 1, 48.8566, 2.3522),
+        Transaction(5, 1500.0, 3, 34.0522, -118.2437)
+    };
+
+    // Set weights for factors
+    double weight_amount = 0.5;
+    double weight_frequency = 0.3;
+    double weight_location = 0.2;
+
+    // Compute suspiciousness score for each transaction
+    for (auto &t : transactions) {
+        t.computeSuspiciousness(weight_amount, weight_frequency, weight_location);
+    }
+
+    // Apply QuickSort to sort transactions by suspiciousness score
+    quickSort(transactions, 0, transactions.size() - 1);
+
+    // Output sorted transactions based on suspiciousness score
+    cout << "Transactions sorted by suspiciousness score (using QuickSort):\n";
+    for (const auto &t : transactions) {
+        cout << "Transaction ID: " << t.id 
+             << ", Suspiciousness Score: " << t.suspiciousness
+             << ", Amount: " << t.amount
+             << ", Frequency: " << t.frequency
+             << ", Location (Lat, Long): (" << t.latitude << ", " << t.longitude << ")\n";
+    }
+
+    return 0;
+}
+
+* Time Complexity:
+   Best and Average Case:  𝑂(𝑛log𝑛)
+
+  Worst Case:  𝑂(n^2)
+  (when the pivot is always the smallest or largest element)
