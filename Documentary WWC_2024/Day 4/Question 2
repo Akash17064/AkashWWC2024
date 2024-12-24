@@ -1,0 +1,117 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+// Define a structure to store stock trade data
+struct StockTrade {
+    long long timestamp; // Timestamp of the trade (milliseconds since epoch)
+    string stockSymbol;  // Stock symbol (e.g., AAPL, TSLA)
+    double price;        // Trade price
+    int volume;          // Trade volume
+
+    // Constructor to initialize trade data
+    StockTrade(long long timestamp, string stockSymbol, double price, int volume)
+        : timestamp(timestamp), stockSymbol(stockSymbol), price(price), volume(volume) {}
+
+    // Method to print the trade details
+    void print() const {
+        cout << "Timestamp: " << timestamp
+             << ", Symbol: " << stockSymbol
+             << ", Price: " << price
+             << ", Volume: " << volume << endl;
+    }
+};
+
+// Merge function for MergeSort (combines two sorted halves)
+void merge(vector<StockTrade>& trades, int left, int mid, int right) {
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+    
+    vector<StockTrade> leftTrades(n1);
+    vector<StockTrade> rightTrades(n2);
+
+    // Copy data to temporary vectors
+    for (int i = 0; i < n1; ++i)
+        leftTrades[i] = trades[left + i];
+    for (int i = 0; i < n2; ++i)
+        rightTrades[i] = trades[mid + 1 + i];
+
+    int i = 0, j = 0, k = left;
+
+    // Merge the temporary vectors back into the original trades vector
+    while (i < n1 && j < n2) {
+        if (leftTrades[i].timestamp < rightTrades[j].timestamp) {
+            trades[k] = leftTrades[i];
+            i++;
+        } else if (leftTrades[i].timestamp > rightTrades[j].timestamp) {
+            trades[k] = rightTrades[j];
+            j++;
+        } else {
+            // If timestamps are equal, compare by stock symbol
+            if (leftTrades[i].stockSymbol < rightTrades[j].stockSymbol) {
+                trades[k] = leftTrades[i];
+                i++;
+            } else {
+                trades[k] = rightTrades[j];
+                j++;
+            }
+        }
+        k++;
+    }
+
+    // Copy remaining elements of leftTrades, if any
+    while (i < n1) {
+        trades[k] = leftTrades[i];
+        i++;
+        k++;
+    }
+
+    // Copy remaining elements of rightTrades, if any
+    while (j < n2) {
+        trades[k] = rightTrades[j];
+        j++;
+        k++;
+    }
+}
+
+// MergeSort function
+void mergeSort(vector<StockTrade>& trades, int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+
+        // Recursively divide the vector into two halves
+        mergeSort(trades, left, mid);
+        mergeSort(trades, mid + 1, right);
+
+        // Merge the two halves
+        merge(trades, left, mid, right);
+    }
+}
+
+int main() {
+    // Sample stock trade data (timestamp, stockSymbol, price, volume)
+    vector<StockTrade> trades = {
+        StockTrade(1638403200000, "AAPL", 145.67, 200),
+        StockTrade(1638403205000, "TSLA", 1095.34, 150),
+        StockTrade(1638403210000, "AAPL", 146.10, 210),
+        StockTrade(1638403215000, "TSLA", 1093.87, 180),
+        StockTrade(1638403220000, "GOOG", 2783.55, 50),
+        StockTrade(1638403225000, "AAPL", 146.40, 250),
+        StockTrade(1638403230000, "GOOG", 2785.90, 55),
+        StockTrade(1638403235000, "TSLA", 1098.76, 190)
+    };
+
+    // Sort trades using MergeSort by timestamp and stock symbol
+    mergeSort(trades, 0, trades.size() - 1);
+
+    // Print sorted trades
+    cout << "Sorted trades by timestamp and stock symbol (using MergeSort):\n";
+    for (const auto& trade : trades) {
+        trade.print();
+    }
+
+    return 0;
+}
