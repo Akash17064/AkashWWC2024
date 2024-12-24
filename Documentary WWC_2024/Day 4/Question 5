@@ -1,0 +1,97 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+// Structure to store Advertisement details
+struct Ad {
+    string advertiserName;   // Advertiser's name
+    double bidAmount;        // Bid amount for the ad
+    double engagementRate;   // Engagement rate of the ad (percentage)
+    double remainingBudget;  // Remaining budget of the advertiser
+    long long arrivalTime;   // Arrival time of the ad (used for tie-breaking)
+
+    // Constructor to initialize ad details
+    Ad(string advertiserName, double bidAmount, double engagementRate, double remainingBudget, long long arrivalTime)
+        : advertiserName(advertiserName), bidAmount(bidAmount), engagementRate(engagementRate), remainingBudget(remainingBudget), arrivalTime(arrivalTime) {}
+
+    // Print ad details
+    void print() const {
+        cout << "Advertiser: " << advertiserName
+             << ", Bid: " << bidAmount
+             << ", Engagement Rate: " << engagementRate
+             << ", Remaining Budget: " << remainingBudget
+             << ", Arrival Time: " << arrivalTime << endl;
+    }
+};
+
+// Comparator function to sort ads based on bid, engagement rate, remaining budget, and arrival time
+bool compareAds(const Ad &a, const Ad &b) {
+    // First, prioritize by bid amount (higher bid is better)
+    if (a.bidAmount != b.bidAmount) {
+        return a.bidAmount > b.bidAmount;
+    }
+    
+    // If bid amounts are the same, prioritize by engagement rate (higher engagement is better)
+    if (a.engagementRate != b.engagementRate) {
+        return a.engagementRate > b.engagementRate;
+    }
+    
+    // If both bid and engagement rate are the same, prioritize by remaining budget (higher budget is better)
+    if (a.remainingBudget != b.remainingBudget) {
+        return a.remainingBudget > b.remainingBudget;
+    }
+
+    // If all else is the same, prioritize by arrival time (earlier arrival is better)
+    return a.arrivalTime < b.arrivalTime;
+}
+
+// QuickSort function for sorting ads based on a custom comparator
+template <typename T>
+void quickSort(vector<T> &ads, int low, int high, bool (*compare)(const T&, const T&)) {
+    if (low < high) {
+        int pi = partition(ads, low, high, compare);
+        quickSort(ads, low, pi - 1, compare);
+        quickSort(ads, pi + 1, high, compare);
+    }
+}
+
+template <typename T>
+int partition(vector<T> &ads, int low, int high, bool (*compare)(const T&, const T&)) {
+    T pivot = ads[high];
+    int i = (low - 1);
+
+    for (int j = low; j < high; j++) {
+        if (compare(ads[j], pivot)) {
+            i++;
+            swap(ads[i], ads[j]);
+        }
+    }
+
+    swap(ads[i + 1], ads[high]);
+    return (i + 1);
+}
+
+int main() {
+    // Sample ad data
+    vector<Ad> ads = {
+        Ad("Advertiser A", 1000.0, 0.85, 5000.0, 1638403200000),
+        Ad("Advertiser B", 1500.0, 0.90, 4000.0, 1638403220000),
+        Ad("Advertiser C", 800.0, 0.80, 2000.0, 1638403230000),
+        Ad("Advertiser D", 1200.0, 0.75, 3000.0, 1638403240000),
+        Ad("Advertiser E", 1300.0, 0.95, 4500.0, 1638403250000)
+    };
+
+    // Sort ads based on bid amount, engagement rate, remaining budget, and arrival time
+    quickSort(ads, 0, ads.size() - 1, compareAds);
+
+    // Print sorted ads
+    cout << "Sorted Ads for Scheduling:\n";
+    for (const auto &ad : ads) {
+        ad.print();
+    }
+
+    return 0;
+}
