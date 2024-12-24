@@ -1,0 +1,123 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+// Define a structure to store video content details
+struct VideoItem {
+    string title;         // Title of the movie or TV show
+    int totalViews;       // Total views of the item
+    double userRating;    // User rating of the item (out of 10)
+    int releaseYear;      // Release year of the item
+    double relevanceScore; // Relevance score for personalized recommendations
+
+    // Constructor to initialize video item
+    VideoItem(string title, int totalViews, double userRating, int releaseYear)
+        : title(title), totalViews(totalViews), userRating(userRating), releaseYear(releaseYear), relevanceScore(0.0) {}
+
+    // Method to print the video item details
+    void print() const {
+        cout << "Title: " << title
+             << ", Views: " << totalViews
+             << ", Rating: " << userRating
+             << ", Year: " << releaseYear
+             << ", Relevance Score: " << relevanceScore << endl;
+    }
+};
+
+// Comparator for sorting based on total views and release year for trending content
+bool compareTrending(const VideoItem &a, const VideoItem &b) {
+    // First, prioritize by views (higher is better)
+    if (a.totalViews != b.totalViews) {
+        return a.totalViews > b.totalViews;
+    }
+    // If views are equal, prioritize by release year (newer is better)
+    return a.releaseYear > b.releaseYear;
+}
+
+// Function to calculate relevance score for personalized recommendations
+void calculateRelevance(VideoItem &item, const vector<string> &userHistory) {
+    int relevance = 0;
+
+    // Simulate calculating relevance based on user's viewing history
+    // For simplicity, let's assume the user likes items with similar ratings and titles
+    for (const string &watchedTitle : userHistory) {
+        if (item.title == watchedTitle) {
+            relevance++; // Increase relevance if the item matches a watched title
+        }
+    }
+
+    // Adjust the relevance score based on rating (higher rating increases relevance)
+    item.relevanceScore = relevance + item.userRating / 10.0; // Rating is out of 10, so divide by 10
+}
+
+// Comparator for sorting personalized recommendations based on relevance score
+bool compareRelevance(const VideoItem &a, const VideoItem &b) {
+    return a.relevanceScore > b.relevanceScore;
+}
+
+// QuickSort function for sorting the video items based on a custom comparator
+template <typename T>
+void quickSort(vector<T> &items, int low, int high, bool (*compare)(const T &, const T &)) {
+    if (low < high) {
+        int pi = partition(items, low, high, compare);
+        quickSort(items, low, pi - 1, compare);
+        quickSort(items, pi + 1, high, compare);
+    }
+}
+
+template <typename T>
+int partition(vector<T> &items, int low, int high, bool (*compare)(const T &, const T &)) {
+    T pivot = items[high];
+    int i = (low - 1);
+
+    for (int j = low; j < high; j++) {
+        if (compare(items[j], pivot)) {
+            i++;
+            swap(items[i], items[j]);
+        }
+    }
+
+    swap(items[i + 1], items[high]);
+    return (i + 1);
+}
+
+int main() {
+    // Sample video catalog
+    vector<VideoItem> videoCatalog = {
+        VideoItem("The Witcher", 1500000, 8.5, 2019),
+        VideoItem("Breaking Bad", 2000000, 9.5, 2008),
+        VideoItem("Stranger Things", 1800000, 8.8, 2016),
+        VideoItem("Avengers: Endgame", 2500000, 8.9, 2019),
+        VideoItem("The Mandalorian", 1200000, 8.7, 2019),
+        VideoItem("Black Panther", 2200000, 7.9, 2018)
+    };
+
+    // Sample user viewing history (titles of shows/movies the user watched)
+    vector<string> userHistory = {"Breaking Bad", "The Witcher", "The Mandalorian"};
+
+    // Calculate relevance scores based on the user's history
+    for (auto &item : videoCatalog) {
+        calculateRelevance(item, userHistory);
+    }
+
+    // Sort catalog by trending content (views and release year)
+    quickSort(videoCatalog, 0, videoCatalog.size() - 1, compareTrending);
+
+    cout << "Trending Content Sorted (By Views and Release Year):\n";
+    for (const auto &item : videoCatalog) {
+        item.print();
+    }
+
+    // Sort catalog based on personalized recommendations (relevance score)
+    quickSort(videoCatalog, 0, videoCatalog.size() - 1, compareRelevance);
+
+    cout << "\nPersonalized Recommendations Sorted (By Relevance Score):\n";
+    for (const auto &item : videoCatalog) {
+        item.print();
+    }
+
+    return 0;
+}
